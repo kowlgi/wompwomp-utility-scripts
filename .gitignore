@@ -1,0 +1,5 @@
+config.js
+*.img
+img
+images/
+node_modules/

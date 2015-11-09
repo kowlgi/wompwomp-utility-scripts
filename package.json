@@ -1,0 +1,22 @@
+{
+  "name": "agni-tools",
+  "version": "1.0.0",
+  "description": "utilities for working with agni backend",
+  "main": "resize_upload.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/alteredstateoftheunion/agni-tools.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/alteredstateoftheunion/agni-tools#readme",
+  "dependencies": {
+    "gm": "^1.21.1",
+    "imgur-node-api": "^0.1.0",
+    "lodash": "^3.10.1",
+    "stdio": "^0.2.7"
+  }
+}
