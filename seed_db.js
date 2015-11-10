@@ -1,6 +1,15 @@
 var _ = require('lodash'),
+  stdio = require('stdio'),
   exec = require('child_process').exec,
-  Config = require('./config');
+  Config = require('./config'),
+  resize_upload = require('./resize_upload');
+
+var ops = stdio.getopt({
+    'category':
+        {key: 'c', args: 1, description: 'enter a category for the item', default: 'test', mandatory: false},
+    'notifyuser':
+        {key: 'n', args: 1, description: 'send push notification to user? (yes/no)', default: 'no', mandatory: false}
+    });
 
 var entries = [
   { 'url': 'http://i.imgur.com/KBku2xi.jpg', 'quote': 'they must hate people' },
@@ -29,5 +38,5 @@ function upload(url, quote) {
 };
 
 _.forEach(entries, function(entry) {
-  upload(entry.url, entry.quote);
+  resize_upload.fetch(entry.url, ops.notifyuser, entry.quote, ops.category);
 });

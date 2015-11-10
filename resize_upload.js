@@ -1,6 +1,7 @@
 // IMPORTANT: Install GraphicMagick on your computer before running this tool
 var stdio = require('stdio'),
     gm = require('gm'),
+    tmp = require('tmp'),
     fs = require('fs'),
     request = require('request'),
     stdio = require('stdio'),
@@ -8,38 +9,27 @@ var stdio = require('stdio'),
     exec = require('child_process').exec,
     Config = require('./config');
 
-var ops = stdio.getopt({
-    'img':
-        {key: 'i', args: 1, description: 'the image you want to resize', mandatory: true},
-    'quote':
-        {key: 'q', args: 1, description: 'enter your quote', mandatory: true},
-    'category':
-        {key: 'c', args: 1, description: 'enter a category for the item', default: 'test', mandatory: false},
-    'notifyuser':
-        {key: 'n', args: 1, description: 'send push notification to user? (yes/no)', default: 'no', mandatory: false}
-    });
-
-function upload(img) {
+function upload(img, notify_user, quote, category, original_img) {
   imgur.setClientID(Config.imgurkey);
   imgur.upload(img, function (err, res) {
-      if(err) {
-          console.log(err);
-          return;
-      }
-
-    console.log('Uploaded to ' + res.data.link);
-
-    fs.rename(img, 'images/'+ res.data.id + '.jpg', function(err) {
-        if ( err ) console.log('ERROR: ' + err);
-
-        notifyuser = "no";
-        if(ops.notifyuser == "yes") {
-            notifyuser = "content"
+    if(err) {
+      console.log(err);
+      return;
+    }
+    console.log('Uploaded file to imgur ' + res.data.link);
+    var tmp_fname = tmp.tmpNameSync();
+    console.log("Created temporary filename: ", tmp_fname);
+    fs.rename(img, tmp_fname, function(err) {
+        if (err) {
+          console.log('Could not rename: ' + img + ' ' + tmp_fname + err);
         }
-
-        var cmd = 'curl --data "text=' + ops.quote + '&&imageuri=' + res.data.link +
-                  '&&category=' + ops.category + '&&submitkey=' + Config.submitkey +
-                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + ops.img + '" '+ Config.url +' ';
+        notifyuser = "no";
+        if(notify_user == "yes") {
+          notifyuser = "content";
+        }
+        var cmd = 'curl --data "text=' + quote + '&&imageuri=' + res.data.link +
+                  '&&category=' + category + '&&submitkey=' + Config.submitkey +
+                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + original_img + '" '+ Config.url +' ';
         console.log(cmd);
         exec(cmd, function(error, stdout, stderr) {
           console.log(stderr);
@@ -48,12 +38,9 @@ function upload(img) {
   });
 };
 
-function resize(fname, width_int, height_int, callback) {
-  width = width_int.toString();
-  height = height_int.toString();
-  strip_extension = fname.replace(/\.[^/.]+$/, "");
-  extension = fname.substr(fname.lastIndexOf('.') + 1);
-  out_fname = strip_extension + '_' + width + '_' + height + '.' + extension;
+function resize(fname, width_int, height_int, notify_user, quote, category, original_img, upload_callback) {
+  // Resize the image and write it out to this file
+  var out_fname = tmp.tmpNameSync();
   gm(fname)
     .resize(width_int, height_int, '^')
     .gravity('Center')
@@ -61,13 +48,12 @@ function resize(fname, width_int, height_int, callback) {
     .noProfile()
     .write(out_fname, function (err) {
       if (!err) {
-        console.log('Converted ' + ops.img + ' to ' + out_fname);
+        console.log('Converted to ' + out_fname);
         gm(out_fname).size(function(err, value) {
           if (!err) {
-            console.log('width = ' + value.width + ' height = ' + value.height);
             if (value.width == Config.width && value.height == Config.height) {
-              console.log('Converted to size requested. Uploading to imgur');
-              callback(out_fname);
+              console.log('Converted to size requested');
+              upload_callback(out_fname, notify_user, quote, category);
             } else {
               console.log('Unable to covert to size requested. Exiting');
               process.exit(1);
@@ -80,18 +66,21 @@ function resize(fname, width_int, height_int, callback) {
     });
 };
 
-function fetch(callback) {
-  var img = 'img';
-  if (ops.img.indexOf("http://") > -1 || ops.img.indexOf("https://") > -1) {
-    console.log('Fetching ' + ops.img);
+function fetch_internal(image_path, notify_user, quote, category, original_img, resize_callback) {
+  // Create a local copy of the image
+  var img = tmp.tmpNameSync();
+  if (image_path.indexOf("http://") > -1 || image_path.indexOf("https://") > -1) {
+    console.log('Fetching ' + image_path);
     var stream = fs.createWriteStream(img);
-    request(ops.img).pipe(stream);
+    request(image_path).pipe(stream);
     stream.once('close', function() {
-      callback(img, Config.width, Config.height, upload);
+      resize_callback(img, Config.width, Config.height, notify_user, quote, category, original_img, upload);
     });
   } else {
-    callback(ops.img, Config.width, Config.height, upload);
+    resize_callback(image_path, Config.width, Config.height, notify_user, quote, category, original_img, upload);
   }
 };
 
-fetch(resize);
+exports.fetch = function(image_path, notify_user, quote, category) {
+  fetch_internal(image_path, notify_user, quote, category, image_path, resize);
+}
