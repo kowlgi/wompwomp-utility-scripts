@@ -9,7 +9,7 @@ var stdio = require('stdio'),
     exec = require('child_process').exec,
     Config = require('./config');
 
-function upload(img, notify_user, quote, category, original_img) {
+function upload(img, notify_user, quote, category) {
   imgur.setClientID(Config.imgurkey);
   imgur.upload(img, function (err, res) {
     if(err) {
@@ -29,7 +29,7 @@ function upload(img, notify_user, quote, category, original_img) {
         }
         var cmd = 'curl --data "text=' + quote + '&&imageuri=' + res.data.link +
                   '&&category=' + category + '&&submitkey=' + Config.submitkey +
-                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + original_img + '" '+ Config.url +' ';
+                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + img + '" '+ Config.url +' ';
         console.log(cmd);
         exec(cmd, function(error, stdout, stderr) {
           console.log(stderr);
@@ -38,7 +38,7 @@ function upload(img, notify_user, quote, category, original_img) {
   });
 };
 
-function resize(fname, width_int, height_int, notify_user, quote, category, original_img, upload_callback) {
+function resize(fname, width_int, height_int, notify_user, quote, category, upload_callback) {
   // Resize the image and write it out to this file
   var out_fname = tmp.tmpNameSync();
   gm(fname)
@@ -66,7 +66,7 @@ function resize(fname, width_int, height_int, notify_user, quote, category, orig
     });
 };
 
-function fetch_internal(image_path, notify_user, quote, category, original_img, resize_callback) {
+function fetch_internal(image_path, notify_user, quote, category, resize_callback) {
   // Create a local copy of the image
   var img = tmp.tmpNameSync();
   if (image_path.indexOf("http://") > -1 || image_path.indexOf("https://") > -1) {
@@ -74,13 +74,13 @@ function fetch_internal(image_path, notify_user, quote, category, original_img, 
     var stream = fs.createWriteStream(img);
     request(image_path).pipe(stream);
     stream.once('close', function() {
-      resize_callback(img, Config.width, Config.height, notify_user, quote, category, original_img, upload);
+      resize_callback(img, Config.width, Config.height, notify_user, quote, category, upload);
     });
   } else {
-    resize_callback(image_path, Config.width, Config.height, notify_user, quote, category, original_img, upload);
+    resize_callback(image_path, Config.width, Config.height, notify_user, quote, category, upload);
   }
 };
 
 exports.fetch = function(image_path, notify_user, quote, category) {
-  fetch_internal(image_path, notify_user, quote, category, image_path, resize);
+  fetch_internal(image_path, notify_user, quote, category, resize);
 }

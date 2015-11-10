@@ -25,18 +25,6 @@ var entries = [
   { 'url': 'http://i.imgur.com/JPOsSc1.jpg', 'quote': 'Blue screen of death' },
 ];
 
-function upload(url, quote) {
-  var category = 'test';
-  var notifyuser = 'no';
-  var cmd = 'curl --data "text=' + quote + '&&imageuri=' + url +
-            '&&category=' + category + '&&submitkey=' + Config.submitkey +
-            '&&notifyuser=' + notifyuser + '" '+ Config.url +' ';
-  console.log(cmd);
-  exec(cmd, function(error, stdout, stderr) {
-    console.log(stderr);
-  });
-};
-
 _.forEach(entries, function(entry) {
   resize_upload.fetch(entry.url, ops.notifyuser, entry.quote, ops.category);
 });
