@@ -29,7 +29,7 @@ function upload(img, notify_user, quote, category) {
         }
         var cmd = 'curl --data "text=' + quote + '&&imageuri=' + res.data.link +
                   '&&category=' + category + '&&submitkey=' + Config.submitkey +
-                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + img + '" '+ Config.url +' ';
+                  '&&notifyuser=' + notifyuser + '&&sourceuri=' + img + '" '+ Config.submiturl +' ';
         console.log(cmd);
         exec(cmd, function(error, stdout, stderr) {
           console.log(stderr);

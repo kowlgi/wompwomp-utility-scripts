@@ -1,9 +1,10 @@
 var config = {};
 
 config.submitkey = "hellno"
-config.imgurkey = "490ca385c5ef403";
+config.imgurkey = "something";
 config.height = 640;
 config.width = 640;
-config.url = "http://localhost:3000/submit"
+config.submiturl = "http://localhost:3000/submit"
+config.ctaurl = "http://localhost:3000/pushcta"
 
 module.exports = config;
