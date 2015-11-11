@@ -1,5 +1,7 @@
 var resize_upload = require('./resize_upload'),
-    stdio = require('stdio');
+    stdio = require('stdio'),
+    exec = require('child_process').exec,
+    Config = require('./config');
 
 var ops = stdio.getopt({
     'type':
