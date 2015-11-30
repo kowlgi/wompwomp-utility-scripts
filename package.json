@@ -14,8 +14,10 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/alteredstateoftheunion/agni-tools#readme",
   "dependencies": {
+    "colors": "^1.1.2",
     "gm": "^1.21.1",
     "imgur-node-api": "^0.1.0",
+    "inquirer": "^0.11.0",
     "lodash": "^3.10.1",
     "request": "^2.65.0",
     "stdio": "^0.2.7",
