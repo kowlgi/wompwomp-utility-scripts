@@ -58,13 +58,14 @@ function upload(img, notify_user, quote, category) {
   });
 };
 
-function resize(fname, width_int, height_int, notify_user, quote, category, upload_callback) {
-  // Resize the image and write it out to this file
+function pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, extent_int) {
   var out_fname = tmp.tmpNameSync();
   gm(fname)
+    .background('#FFFFFF')
+    .gravity('Center')
+    .extent(extent_int, extent_int)
     .resize(width_int, height_int, '^')
     .gravity('Center')
-    .extent(width_int, height_int)
     .noProfile()
     .write(out_fname, function (err) {
       if (!err) {
@@ -84,6 +85,31 @@ function resize(fname, width_int, height_int, notify_user, quote, category, uplo
         console.log(err);
       }
     });
+};
+
+function resize(fname, width_int, height_int, notify_user, quote, category, upload_callback) {
+  // Resize the image and write it out to this file
+  // Get the size of the image
+  var pad = false;
+  gm(fname)
+  .size(function (err, size) {
+    if (!err) {
+      console.log(('\twidth = ' + size.width + ' height = ' + size.height).bold.white);
+      if (size.width <= Config.width && size.height <= Config.height) {
+        console.log(('\twidth and height less than config size').bold.white);
+        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Config.width);
+      } else if (size.width > Config.width && size.height <= Config.height) {
+        console.log(('\twidth greater than config size but height less than config size').bold.white);
+        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.width);
+      } else if (size.width <= Config.width && size.height > Config.height) {
+        console.log(('\twidth less than config size but height greater than config size').bold.white);
+        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.height);
+      } else {
+        console.log(('\twidth and height greater than config size').bold.white);
+        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Math.max(size.width, size.height));
+      }
+    }
+  });
 };
 
 function fetch_internal(image_path, notify_user, quote, category, resize_callback) {
