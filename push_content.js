@@ -9,7 +9,9 @@ var ops = stdio.getopt({
     'category':
         {key: 'c', args: 1, description: 'enter a category for the item', default: 'test', mandatory: false},
     'notifyuser':
-        {key: 'n', args: 1, description: 'send push notification to user? (yes/no)', default: 'no', mandatory: false}
+        {key: 'n', args: 1, description: 'send push notification to user? (yes/no)', default: 'no', mandatory: false},
+    'padding':
+        {key: 'p', args: 1, description: 'turn on image padding (yes/no)', default: 'yes', mandatory: false}
     });
 
-resize_upload.fetch(ops.img, ops.notifyuser, ops.quote, ops.category);
+resize_upload.fetch(ops.img, ops.notifyuser, ops.quote, ops.category, ops.padding);

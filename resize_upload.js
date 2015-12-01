@@ -11,6 +11,8 @@ var stdio = require('stdio'),
     exec = require('child_process').exec,
     Config = require('./config');
 
+var PADDING = 'yes';
+
 function upload(img, notify_user, quote, category) {
   imgur.setClientID(Config.imgurkey);
   imgur.upload(img, function (err, res) {
@@ -59,6 +61,7 @@ function upload(img, notify_user, quote, category) {
 };
 
 function pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, extent_int) {
+  console.log('\tPadding is ON'.bold.white);
   var out_fname = tmp.tmpNameSync();
   gm(fname)
     .background('#FFFFFF')
@@ -66,6 +69,34 @@ function pad_on(fname, width_int, height_int, notify_user, quote, category, uplo
     .extent(extent_int, extent_int)
     .resize(width_int, height_int, '^')
     .gravity('Center')
+    .noProfile()
+    .write(out_fname, function (err) {
+      if (!err) {
+        console.log(('Converted to ' + out_fname).bold.white);
+        gm(out_fname).size(function(err, value) {
+          if (!err) {
+            if (value.width == Config.width && value.height == Config.height) {
+              console.log(('Converted image to size requested').bold.white);
+              upload_callback(out_fname, notify_user, quote, category);
+            } else {
+              console.log(('Unable to covert to size requested. Exiting').red);
+              process.exit(1);
+            }
+          }
+        });
+      } else {
+        console.log(err);
+      }
+    });
+};
+
+function pad_off(fname, width_int, height_int, notify_user, quote, category, upload_callback) {
+  console.log('\tPadding is OFF'.bold.white);
+  var out_fname = tmp.tmpNameSync();
+  gm(fname)
+    .resize(width_int, height_int, '^')
+    .gravity('Center')
+    .extent(width_int, height_int)
     .noProfile()
     .write(out_fname, function (err) {
       if (!err) {
@@ -95,18 +126,22 @@ function resize(fname, width_int, height_int, notify_user, quote, category, uplo
   .size(function (err, size) {
     if (!err) {
       console.log(('\twidth = ' + size.width + ' height = ' + size.height).bold.white);
-      if (size.width <= Config.width && size.height <= Config.height) {
-        console.log(('\twidth and height less than config size').bold.white);
-        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Config.width);
-      } else if (size.width > Config.width && size.height <= Config.height) {
-        console.log(('\twidth greater than config size but height less than config size').bold.white);
-        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.width);
-      } else if (size.width <= Config.width && size.height > Config.height) {
-        console.log(('\twidth less than config size but height greater than config size').bold.white);
-        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.height);
+      if (PADDING == 'yes') {
+        if (size.width <= Config.width && size.height <= Config.height) {
+          console.log(('\twidth and height less than config size').bold.white);
+          pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Config.width);
+        } else if (size.width > Config.width && size.height <= Config.height) {
+          console.log(('\twidth greater than config size but height less than config size').bold.white);
+          pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.width);
+        } else if (size.width <= Config.width && size.height > Config.height) {
+          console.log(('\twidth less than config size but height greater than config size').bold.white);
+          pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, size.height);
+        } else {
+          console.log(('\twidth and height greater than config size').bold.white);
+          pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Math.max(size.width, size.height));
+        }
       } else {
-        console.log(('\twidth and height greater than config size').bold.white);
-        pad_on(fname, width_int, height_int, notify_user, quote, category, upload_callback, Math.max(size.width, size.height));
+        pad_off(fname, width_int, height_int, notify_user, quote, category, upload_callback);
       }
     }
   });
@@ -127,6 +162,7 @@ function fetch_internal(image_path, notify_user, quote, category, resize_callbac
   }
 };
 
-exports.fetch = function(image_path, notify_user, quote, category) {
+exports.fetch = function(image_path, notify_user, quote, category, padding) {
+  PADDING = padding;
   fetch_internal(image_path, notify_user, quote, category, resize);
 }
