@@ -7,7 +7,7 @@ var ops = stdio.getopt({
     'quote':
         {key: 'q', args: 1, description: 'enter your quote', mandatory: true},
     'category':
-        {key: 'c', args: 1, description: 'enter a category for the item', default: 'test', mandatory: false},
+        {key: 'c', args: 1, description: 'enter a category for the item', default: 'buffered', mandatory: false},
     'notifyuser':
         {key: 'n', args: 1, description: 'send push notification to user? (yes/no)', default: 'no', mandatory: false},
     'padding':
