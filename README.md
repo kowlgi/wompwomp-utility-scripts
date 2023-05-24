@@ -1,10 +1,3 @@
-This repo contains utilities for working with the agni backend. Below are the available utilities
-
-push_content.js : to push a picture and image into the backend db, with the option of sending the user a push notification
-hide_content.js : to hide an item from the user's feed. This command DOES NOT erase the corresponding item from the backend db.
-push_cta.js: to push a share or rate card to the user's feed. you can also run a command to remove all the CTAs from a user's feed.
-
-
 # Utility scripts for WompWomp (Oct 2015 - Jun 2016)
 
 ## Intro
@@ -24,7 +17,7 @@ WompWomp had 10K installs and hosted over 3000 pictures and video memes.
 * no path forward — just an entertainment app
 * not a solution to any pain point as such
 
-### How to use the codebase ###
+## How to use the codebase ##
 * Clone this git repo
 * Start the MongoDB instance on the server
 * Run the chosen script
